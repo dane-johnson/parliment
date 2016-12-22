@@ -9,3 +9,7 @@ An authored bill will be a rule enacted within the game that will change the way
 The game must allow for times for table talk to create alliances towards common goals.
 
 Players must be able to pass bills modifying such things as majorities, consigners, debate periods, tabling, riders, etc.
+
+Players will play on their mobile phones
+
+A main screen will display information, like the current budget, adgenda, and what bill are on the floor.
