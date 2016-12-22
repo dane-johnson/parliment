@@ -1,0 +1,11 @@
+Each player's goal is to advance her secret special interest by manipulation of parliamentary voting procedures.
+
+A player may author bills to either advance her agenda or increase her ability to pass bills in the future.
+
+All player should be a member of a specific political party, a group of individuals who they percieve as having common interests.
+
+An authored bill will be a rule enacted within the game that will change the way money is distributed a specific round or the way parliment proceeds from then on.
+
+The game must allow for times for table talk to create alliances towards common goals.
+
+Players must be able to pass bills modifying such things as majorities, consigners, debate periods, tabling, riders, etc.
