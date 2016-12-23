@@ -1,0 +1,31 @@
+{
+  "name": "parliment",
+  "version": "1.0.0",
+  "description": "The idea of this game is that it is a game of trying to slant parlimentary procedure in your favor.",
+  "main": "lib/index.js",
+  "directories": {
+    "doc": "docs",
+    "lib": "libs",
+    "src": "srcs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-plugin-transform-class-properties": "^6.19.0",
+    "babel-preset-env": "^1.1.4",
+    "babel-register": "^6.18.0"
+  },
+  "scripts": {
+    "build": "babel src -d lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dane-johnson/parliment.git"
+  },
+  "author": "Dane Johnson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dane-johnson/parliment/issues"
+  },
+  "homepage": "https://github.com/dane-johnson/parliment#readme"
+}
