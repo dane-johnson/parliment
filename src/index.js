@@ -60,9 +60,11 @@ class Party
 class Bill
 {
 	static nBills = 1;
-	constructor(name)
+	constructor(name, authors, cosigners)
 	{
 		this.name = name;
+		this.authors = authors;
+		this.cosigners = cosigners;
 		this.no = Bill.nBills++;
 	}
 }
@@ -139,7 +141,7 @@ for(var d of parliment.delegates)
 
 var v1 = new Recess(d2, 10);
 
-var b1 = new Bill("Give every whale an easily spotted home.");
+var b1 = new Bill("Give every whale an easily spotted home.", [d1], []);
 parliment.floor.addBill(b1);
 var v2 = new Vote(d1, b1);
 
@@ -150,7 +152,7 @@ var item;
 while(item = parliment.floor.docket.shift())
 {
 	console.log("Next on the docket...")
-	if(item instanceof Recess)
+	if (item instanceof Recess)
 	{
 		console.log("A recess for %d minutes introduced by Representative %s.", item.length, item.introducee.name);
 	}
@@ -164,6 +166,11 @@ while(item = parliment.floor.docket.shift())
 	if(parliment.floor.docket.vote(item, 1, 1))
 	{
 		console.log("The Ayes have it.");
+		if (item instanceof Vote)
+		{
+			var authors = item.bill.authors.map((a) => a.name).reduce((a, b) => a + ", " + b)
+			console.log("The bill is authored by %s", authors);
+		}
 	}
 	else
 	{
