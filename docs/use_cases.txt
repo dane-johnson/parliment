@@ -1,9 +1,9 @@
 Designation	Dependencies	Description
-UC-01		NA		Join Game
-UC-02		UC-01		Author Bills
-UC-03		UC-02		Cosign Bills
-UC-04		UC-02		Add to Docket
-UC-05		UC-04		Vote on Docket
+UC-01		NA				Join Game
+UC-02		UC-01			Author Bills
+UC-03		UC-02			Cosign Bills
+UC-04		UC-02			Add to Docket
+UC-05		UC-04			Vote on Docket
 UC-06		UC-02, UC-05	Vote on Bill
-UC-07		UC-01		View Budget
-UC-08		UC-01		View Procedure
+UC-07		UC-01			View Budget
+UC-08		UC-01			View Procedure
