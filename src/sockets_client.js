@@ -18,17 +18,13 @@ export function authorBill(bill)
 }
 export function cosignBill(bill)
 {
-	socket.emit("cosignBill", {bill: bill});
+	socket.emit("cosignBill", {bid: bid, uid: uid});
 }
 export function addToDocket(item)
 {
-	socket.emit("addToDocket", {item:item});
+	socket.emit("addToDocket", {item: item});
 }
-export function voteOnDocket(vote)
+export function castVote(vote)
 {
-	socket.emit("voteOnDocket", {vote: vote});
-}
-export function voteOnBill(vote)
-{
-	socket.emit("voteOnBill", {vote: vote});
+	socket.emit("castVote", {vote: vote, uid: uid});
 }
