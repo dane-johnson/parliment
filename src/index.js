@@ -5,7 +5,7 @@ import {createStore} from 'redux';
 import {Router, browserHistory} from 'react-router';
 import routes from "./routes";
 import reducers from "./reducers";
-import { initSockets } from "./sockets_client";
+import {initSockets} from "./sockets_client";
 
 const store = createStore(reducers);
 

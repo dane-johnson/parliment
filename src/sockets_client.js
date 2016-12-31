@@ -2,9 +2,58 @@ import io from 'socket.io-client';
 
 var socket = io();
 
+export const SET_UID = 'SET_UID';
+export const UPDATE_PLAYERS = 'UPDATE_PLAYERS';
+export const UPDATE_BILLS = 'UPDATE_BILLS';
+export const UPDATE_DOCKET = 'UPDATE_DOCKET';
+export const UPDATE_VOTES = 'UPDATE_VOTES'
+
 export function initSockets(store)
 {
-	
+	socket.on("deliverUID", function(data)
+	{
+		const action = {
+			type: SET_UID,
+			uid: data.uid
+		}
+		store.dispatch(action);
+	});
+
+	socket.on("updatePlayers", function(data)
+	{
+		const action = {
+			type: UPDATE_PLAYERS,
+			players: data.players
+		}
+		store.dispatch(action);
+	});
+
+	socket.on("updateBills", function(data)
+	{
+		const action = {
+			type: UPDATE_BILLS,
+			bills: data.bills
+		}
+		store.dispatch(action);
+	});
+
+	socket.on("updateDocket", function(data)
+	{
+		const action = {
+			type: UPDATE_DOCKET,
+			docket: data.docket
+		}
+		store.dispatch(action);
+	});
+
+	socket.on("updateVotes", function(data)
+	{
+		const action = {
+			type: UPDATE_VOTES,
+			votes: data.votes
+		}
+		store.dispatch(action);
+	});
 }
 
 //Export client-side socket functions

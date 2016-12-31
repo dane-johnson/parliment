@@ -10,7 +10,7 @@ var parliment = {
 		nays: []
 	}
 }
-module.exports.initSocket = function(socket, clients, ioAccess)
+module.exports.initSockets = function(socket, clients, ioAccess)
 {
 	socket.on('joinGame', function(data){
 		var uid = parliment.nextUID++;
