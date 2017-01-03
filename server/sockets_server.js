@@ -10,6 +10,8 @@ var parliment = {
 		nays: []
 	}
 }
+
+//Server responses to client commands
 module.exports.initSockets = function(socket, clients, ioAccess)
 {
 	socket.on('joinGame', function(data){

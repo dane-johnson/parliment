@@ -1,3 +1,4 @@
+//Reducers for client-side redux
 import {SET_UID, UPDATE_PLAYERS, UPDATE_DOCKET, UPDATE_BILLS, UPDATE_VOTES} from '../sockets_client';
 export default function(state = {
 	uid: -1,

@@ -1,13 +1,17 @@
+//Client side socket definitions
 import io from 'socket.io-client';
 
+//Connect to the server socket
 var socket = io();
 
+//Constants for actions
 export const SET_UID = 'SET_UID';
 export const UPDATE_PLAYERS = 'UPDATE_PLAYERS';
 export const UPDATE_BILLS = 'UPDATE_BILLS';
 export const UPDATE_DOCKET = 'UPDATE_DOCKET';
 export const UPDATE_VOTES = 'UPDATE_VOTES'
 
+//Actions the client will take on server commands
 export function initSockets(store)
 {
 	socket.on("deliverUID", function(data)
