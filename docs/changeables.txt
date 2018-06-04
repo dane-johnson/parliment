@@ -1,0 +1,16 @@
+Bills:
+number of signers needed
+number of cosigners needed
+conditions
+effects
+ratification conditions
+tabling conditions
+Prodecure:
+introduction rules
+special privledges
+debate time
+decorum
+Party:
+party membership rules
+Election:
+election rules
