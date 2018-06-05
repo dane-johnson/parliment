@@ -1,5 +1,5 @@
 (ns parliment.core
-  (:require [org.httpkit.server :refer [run-server with-channel on-close on-receive]]
+  (:require [org.httpkit.server :refer [run-server with-channel on-close on-receive send!]]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :refer [files not-found]]
             [compojure.handler :refer [site]])
@@ -31,13 +31,21 @@
   (swap! lobbies update-in [lobby :players] conj player))
 
 ;;;;;;;;;;;;;;;;;;;; WEBSOCKETS ;;;;;;;;;;;;;;;;;;;;
+
+(defn send-message
+  ([channel msg] (send-message channel msg {}))
+  ([channel msg data] (send! channel (prn-str (assoc data :server-message msg)))))
+
 (defn ws-handler
   [request]
   (with-channel request channel
     (on-close channel (fn [status]
                         (println "channel closed: " status)))
-    (on-receive channel (fn [data]
-                          (println data)))))
+    (on-receive channel (fn [raw]
+                          (let [data (clojure.edn/read-string raw)
+                                msg (:client-message data)]
+                            (case msg
+                              :join-room (send-message channel :uuid {:uuid (str (java.util.UUID/randomUUID))})))))))
 
 ;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
 
