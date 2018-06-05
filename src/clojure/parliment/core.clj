@@ -1,22 +1,51 @@
 (ns parliment.core
-  (:require [org.httpkit.server :refer :all])
+  (:require [org.httpkit.server :refer [run-server with-channel on-close on-receive]]
+            [compojure.core :refer [defroutes GET]]
+            [compojure.route :refer [files not-found]]
+            [compojure.handler :refer [site]])
   (:gen-class))
 
-(defonce server (atom nil))
+;;;;;;;;;;;;;;;;;;;; LOBBY ;;;;;;;;;;;;;;;;;;;;
+(defonce lobbies (atom {}))
 
-(defn app [req]
-  {:status 200
-   :headers {"Content-Type" "text/html"}
-   :body "Hello World!"})
+(defn generate-code
+  []
+  (let [code (atom nil)]
+    (while (or (nil? @code) (contains? @lobbies @code))
+      (reset! code
+              (apply str
+                     (repeatedly 4 #(char (+ (int \A) (rand-int 26)))))))
+    @code))
 
-(defn stop-server []
-  (when-not (nil? @server)
-    (@server :timeout 100)
-    (reset! server nil)))
+(defn make-lobby
+  []
+  (let [code (generate-code)]
+    (swap! lobbies assoc code
+           {:players []
+            :mode :waiting
+            :gamestate {}})
+    code))
 
-(reset! server (run-server app {:port 8080}))
+(defn join-lobby
+  [lobby player]
+  (swap! lobbies update-in [lobby :players] conj player))
 
-(defn -main
-  "I don't do a whole lot ... yet."
-  [& args]
-  (println "Hello, World!"))
+;;;;;;;;;;;;;;;;;;;; WEBSOCKETS ;;;;;;;;;;;;;;;;;;;;
+(defn ws-handler
+  [request]
+  (with-channel request channel
+    (on-close channel (fn [status]
+                        (println "channel closed: " status)))
+    (on-receive channel (fn [data]
+                          (println data)))))
+
+;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
+
+(defroutes all-routes
+  (GET "/ws" [] ws-handler)
+  (files "" {:root "public"})
+  (not-found "<p>404 PAGE NOT FOUND</p>"))
+
+(defn -main [& args]
+  (run-server (site #'all-routes) {:port 8080})
+  (println "Server running!"))

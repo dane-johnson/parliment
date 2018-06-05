@@ -4,7 +4,16 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [http-kit "2.2.0"]]
+                 [http-kit "2.2.0"]
+                 [compojure "1.6.1"]
+                 [javax.servlet/servlet-api "2.5"]
+                 [org.clojure/clojurescript "1.10.238"]
+                 [reagent "0.7.0"]]
+  :plugins [[lein-cljsbuild "1.1.7"]]
+  :cljsbuild {:builds [{:source-paths ["src/clojurescript"]
+                        :compiler {:output-to "public/static/main.js"
+                                   :optimizations :whitespace
+                                   :pretty-print true}}]}
   :source-paths ["src/clojure"]
   :main ^:skip-aot parliment.core
   :target-path "target/%s"
