@@ -19,7 +19,9 @@
   (case msg
     :uuid (do
             (println "My uuid is" (:uuid data))
-            (render-page lobby))))
+            (render-page lobby))
+    :player-joined (do
+                     (println "Player " (:name data) " has joined as well"))))
 
 (set! (.-onmessage socket) #(let [data (read-string (.-data %))]
                               (println data)

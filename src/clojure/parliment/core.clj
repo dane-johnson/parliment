@@ -1,5 +1,6 @@
 (ns parliment.core
-  (:require [org.httpkit.server :refer [run-server with-channel on-close on-receive send!]]
+  (:require [org.httpkit.server :refer [run-server with-channel on-close on-receive
+                                        send!]]
             [compojure.core :refer [defroutes GET]]
             [compojure.route :refer [files not-found]]
             [compojure.handler :refer [site]])
@@ -21,20 +22,25 @@
   []
   (let [code (generate-code)]
     (swap! lobbies assoc code
-           {:players []
+           {:players {}
             :mode :waiting
             :gamestate {}})
     code))
 
 (defn join-lobby
-  [lobby player]
-  (swap! lobbies update-in [lobby :players] conj player))
+  [lobby uuid channel name]
+  (swap! lobbies update-in [lobby :players] assoc uuid {:channel channel :name name}))
 
 ;;;;;;;;;;;;;;;;;;;; WEBSOCKETS ;;;;;;;;;;;;;;;;;;;;
 
 (defn send-message
   ([channel msg] (send-message channel msg {}))
   ([channel msg data] (send! channel (prn-str (assoc data :server-message msg)))))
+
+(defn send-message-lobby
+  ([lobby msg] (send-message-lobby lobby msg {}))
+  ([lobby msg data] (for [channel (map #(:channel %) (vals (get-in @lobbies [lobby :players])))]
+                      (send-message channel msg data))))
 
 (defn ws-handler
   [request]
@@ -45,7 +51,10 @@
                           (let [data (clojure.edn/read-string raw)
                                 msg (:client-message data)]
                             (case msg
-                              :join-room (send-message channel :uuid {:uuid (str (java.util.UUID/randomUUID))})))))))
+                              :join-room (let [uuid (str (java.util.UUID/randomUUID))]
+                                           (send-message channel :uuid {:uuid uuid})
+                                           (join-lobby (key (first @lobbies)) uuid channel (:name data))
+                                           (send-message-lobby (key (first @lobbies)) :player-joined {:name (:name data)}))))))))
 
 ;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
 
@@ -56,4 +65,4 @@
 
 (defn -main [& args]
   (run-server (site #'all-routes) {:port 8080})
-  (println "Server running!"))
+  (println "Server running\nLobby Code: " (make-lobby)))
