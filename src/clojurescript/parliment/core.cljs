@@ -18,10 +18,11 @@
   [msg data]
   (case msg
     :uuid (do
+            (swap! gamestate assoc :uuid (:uuid data))
             (println "My uuid is" (:uuid data))
             (render-page lobby))
-    :player-joined (do
-                     (println "Player " (:name data) " has joined as well"))))
+    :update-roster (do
+                     (swap! gamestate assoc :roster (:roster data)))))
 
 (set! (.-onmessage socket) #(let [data (read-string (.-data %))]
                               (println data)
@@ -45,12 +46,14 @@
      [:button {:on-click #(do (send-message :join-room @state)
                               (swap! gamestate conj @state))} "Join Game"]]))
 
-(def timer (atom 0))
-
-(js/setInterval #(swap! timer inc) 1000)
+(defn other-players
+  []
+  [:div [:p "Other players:"]
+   [:ul (map #(if (not= (:uuid %) (:uuid @gamestate))
+                [:li (:name %)]) (:roster @gamestate))]])
 
 (defn lobby
   []
-  [:div "Welcome to the game " (:name @gamestate) "! The game will begin soon! The count is " @timer])
+  [:div "Welcome to the game " (:name @gamestate) "! The game will begin soon!" (other-players)])
 
 (render-page landing)

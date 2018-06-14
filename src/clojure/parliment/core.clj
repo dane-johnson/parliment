@@ -41,6 +41,12 @@
   ([lobby msg] (send-message-lobby lobby msg {}))
   ([lobby msg data] (doseq [channel (map #(:channel %) (vals (get-in @lobbies [lobby :players])))]
                       (send-message channel msg data))))
+(defn update-roster
+  [lobby]
+  (send-message-lobby lobby :update-roster
+                      {:roster (-> @lobbies (get-in [lobby :players])
+                                   (->> (map (fn [[uuid {name :name}]]
+                                               {:uuid uuid :name name}))))}))
 
 (defn ws-handler
   [request]
@@ -55,11 +61,7 @@
                                                lobby (key (first @lobbies))]
                                            (send-message channel :uuid {:uuid uuid})
                                            (join-lobby lobby uuid channel (:name data))
-                                           (send-message-lobby lobby :update-roster
-                                                               {:roster (-> @lobbies (get-in [lobby :players])
-                                                                            (->> (map (fn [[uuid {name :name}]]
-                                                                                        {:uuid uuid :name name}))))}))))))))
-
+                                           (update-roster lobby))))))))
 ;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
 
 (defroutes all-routes
