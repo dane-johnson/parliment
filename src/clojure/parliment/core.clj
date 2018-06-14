@@ -51,10 +51,14 @@
                           (let [data (clojure.edn/read-string raw)
                                 msg (:client-message data)]
                             (case msg
-                              :join-room (let [uuid (str (java.util.UUID/randomUUID))]
+                              :join-room (let [uuid (str (java.util.UUID/randomUUID))
+                                               lobby (key (first @lobbies))]
                                            (send-message channel :uuid {:uuid uuid})
-                                           (join-lobby (key (first @lobbies)) uuid channel (:name data))
-                                           (send-message-lobby (key (first @lobbies)) :player-joined {:name (:name data)}))))))))
+                                           (join-lobby lobby uuid channel (:name data))
+                                           (send-message-lobby lobby :update-roster
+                                                               {:roster (-> @lobbies (get-in [lobby :players])
+                                                                            (->> (map (fn [[uuid {name :name}]]
+                                                                                        {:uuid uuid :name name}))))}))))))))
 
 ;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
 
