@@ -39,7 +39,7 @@
 
 (defn send-message-lobby
   ([lobby msg] (send-message-lobby lobby msg {}))
-  ([lobby msg data] (for [channel (map #(:channel %) (vals (get-in @lobbies [lobby :players])))]
+  ([lobby msg data] (doseq [channel (map #(:channel %) (vals (get-in @lobbies [lobby :players])))]
                       (send-message channel msg data))))
 
 (defn ws-handler
