@@ -5,7 +5,26 @@
 (enable-console-print!)
 
 (defonce socket (js/WebSocket. "ws://localhost:8080/ws"))
+
+(defn send-message
+  ([msg] (send-message msg {}))
+  ([msg data] (.send socket (str (assoc data :client-message msg)))))
+
 (defonce gamestate (atom {}))
+
+(defn save-gamestate-to-cookie
+  []
+  (set! (.-cookie js/document) (str "gamestate=" @gamestate ";")))
+
+(defn restore-gamestate-from-cookie
+  []
+  (reset! gamestate (->> (.-cookie js/document) (re-find #"gamestate=(.+);?") second read-string)))
+
+(defn reset-gamestate
+  []
+  (do
+    (set! (.-cookie js/document) "")
+    (reset! gamestate {})))
 
 (declare landing lobby)
 
@@ -17,9 +36,13 @@
 (defn logic-fn
   [msg data]
   (case msg
+    :reconnected (render-page lobby)
+    :remove-cookie (do
+                     (reset-gamestate)
+                     (render-page landing))
     :uuid (do
             (swap! gamestate assoc :uuid (:uuid data))
-            (println "My uuid is" (:uuid data))
+            (save-gamestate-to-cookie)
             (render-page lobby))
     :update-roster (do
                      (swap! gamestate assoc :roster (:roster data)))))
@@ -28,9 +51,13 @@
                               (println data)
                               (logic-fn (:server-message data) data)))
 
-(defn send-message
-  ([msg] (send-message msg {}))
-  ([msg data] (.send socket (str (assoc data :client-message msg)))))
+(set! (.-onopen socket) #(if (re-find #"gamestate=.+;?" (.-cookie js/document))
+                           (do
+                             (restore-gamestate-from-cookie)
+                             (println send-message)
+                             (println socket)
+                             (send-message :reconnect {:uuid (:uuid @gamestate) :lobby (:room-code @gamestate)}))
+                           (render-page landing)))
 
 ;;;;;;;;;;;;;;;;;;;; PAGES ;;;;;;;;;;;;;;;;;;;;
 (defn landing
@@ -55,5 +82,3 @@
 (defn lobby
   []
   [:div "Welcome to the game " (:name @gamestate) "! The game will begin soon!" (other-players)])
-
-(render-page landing)

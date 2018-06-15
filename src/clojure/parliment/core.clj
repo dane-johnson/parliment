@@ -9,6 +9,8 @@
 ;;;;;;;;;;;;;;;;;;;; LOBBY ;;;;;;;;;;;;;;;;;;;;
 (defonce lobbies (atom {}))
 
+(def ^:dynamic *reconnection-allowed* true)
+
 (defn generate-code
   []
   (let [code (atom nil)]
@@ -61,7 +63,18 @@
                                                lobby (key (first @lobbies))]
                                            (send-message channel :uuid {:uuid uuid})
                                            (join-lobby lobby uuid channel (:name data))
-                                           (update-roster lobby))))))))
+                                           (update-roster lobby))
+                              :reconnect (do
+                                           (if (and
+                                                *reconnection-allowed*
+                                                (contains? @lobbies (:lobby data))
+                                                (contains? (get-in @lobbies [(:lobby data) :players]) (:uuid data)))
+                                             (do
+                                               (swap! lobbies assoc-in [(:lobby data) :players (:uuid data) :channel] channel)
+                                               (send-message channel :reconnected)
+                                               (update-roster (:lobby data)))
+                                             (send-message channel :remove-cookie)))))))))
+
 ;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
 
 (defroutes all-routes
@@ -70,5 +83,6 @@
   (not-found "<p>404 PAGE NOT FOUND</p>"))
 
 (defn -main [& args]
-  (run-server (site #'all-routes) {:port 8080})
-  (println "Server running\nLobby Code: " (make-lobby)))
+  (binding [t*reconnection-allowed* false]
+    (run-server (site #'all-routes) {:port 8080})
+    (println "Server running\nLobby Code: " (make-lobby))))
