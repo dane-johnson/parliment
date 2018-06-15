@@ -59,11 +59,12 @@
                           (let [data (clojure.edn/read-string raw)
                                 msg (:client-message data)]
                             (case msg
-                              :join-room (let [uuid (str (java.util.UUID/randomUUID))
-                                               lobby (key (first @lobbies))]
+                              :make-lobby (let [lobby (make-lobby)]
+                                            (send-message channel :lobby-created {:room-code lobby}))
+                              :join-room (let [uuid (str (java.util.UUID/randomUUID))]
                                            (send-message channel :uuid {:uuid uuid})
-                                           (join-lobby lobby uuid channel (:name data))
-                                           (update-roster lobby))
+                                           (join-lobby (:room-code data) uuid channel (:name data))
+                                           (update-roster (:room-code data)))
                               :reconnect (do
                                            (if (and
                                                 *reconnection-allowed*
@@ -83,6 +84,6 @@
   (not-found "<p>404 PAGE NOT FOUND</p>"))
 
 (defn -main [& args]
-  (binding [t*reconnection-allowed* false]
+  (binding [*reconnection-allowed* false]
     (run-server (site #'all-routes) {:port 8080})
-    (println "Server running\nLobby Code: " (make-lobby))))
+    (println "Server running!")))

@@ -45,7 +45,9 @@
             (save-gamestate-to-cookie)
             (render-page lobby))
     :update-roster (do
-                     (swap! gamestate assoc :roster (:roster data)))))
+                     (swap! gamestate assoc :roster (:roster data)))
+    :lobby-created (do
+                     (swap! gamestate assoc :room-code (:room-code data)))))
 
 (set! (.-onmessage socket) #(let [data (read-string (.-data %))]
                               (println data)
@@ -69,9 +71,11 @@
               :on-change #(swap! state assoc :name (-> % .-target .-value))}]
      [:label "Room Code"]
      [:input {:type "text"
-              :on-change #(swap! state assoc :room-code (-> % .-target .-value))}]
+              :on-change #(swap! state assoc :room-code (-> % .-target .-value))
+              :value (:room-code @gamestate)}]
      [:button {:on-click #(do (send-message :join-room @state)
-                              (swap! gamestate conj @state))} "Join Game"]]))
+                              (swap! gamestate conj @state))} "Join Game"]
+     [:button {:on-click #(do (send-message :make-lobby))} "Make lobby"]]))
 
 (defn other-players
   []
