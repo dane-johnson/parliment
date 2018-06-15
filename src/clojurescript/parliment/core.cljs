@@ -64,18 +64,17 @@
 ;;;;;;;;;;;;;;;;;;;; PAGES ;;;;;;;;;;;;;;;;;;;;
 (defn landing
   []
-  (let [state (atom {})]
-    [:div
-     [:label "Name"]
-     [:input {:type "text"
-              :on-change #(swap! state assoc :name (-> % .-target .-value))}]
-     [:label "Room Code"]
-     [:input {:type "text"
-              :on-change #(swap! state assoc :room-code (-> % .-target .-value))
-              :value (:room-code @gamestate)}]
-     [:button {:on-click #(do (send-message :join-room @state)
-                              (swap! gamestate conj @state))} "Join Game"]
-     [:button {:on-click #(do (send-message :make-lobby))} "Make lobby"]]))
+  [:div
+   [:label "Name"]
+   [:input {:type "text"
+            :on-change #(swap! gamestate assoc :name (->
+                                                      % .-target .-value))}]
+   [:label "Room Code"]
+   [:input {:type "text"
+            :on-change #(swap! gamestate assoc :room-code (-> % .-target .-value))
+            :value (:room-code @gamestate)}]
+   [:button {:on-click #(do (send-message :join-room (select-keys @gamestate [:room-code :name])))} "Join Game"]
+   [:button {:on-click #(do (send-message :make-lobby))} "Make lobby"]])
 
 (defn other-players
   []
