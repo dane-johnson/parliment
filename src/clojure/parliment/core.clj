@@ -107,7 +107,11 @@
 
 (defonce shutdown (atom nil))
 
-(defn -main [& args]
+(defn start-test-server
+  []
   (reset! reconnections-allowed false)
   (reset! shutdown (run-server (site #'all-routes) {:port 8080}))
   (println "Server running!"))
+
+(defn -main [& args]
+  (start-test-server))
