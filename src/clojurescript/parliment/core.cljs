@@ -46,7 +46,7 @@
             (render-page lobby))
     :update-roster (do
                      (swap! gamestate assoc :roster (:roster data)))
-    :lobby-created (do
+    :room-created (do
                      (swap! gamestate assoc :room-code (:room-code data)))))
 
 (set! (.-onmessage socket) #(let [data (read-string (.-data %))]
@@ -58,7 +58,7 @@
                              (restore-gamestate-from-cookie)
                              (println send-message)
                              (println socket)
-                             (send-message :reconnect {:uuid (:uuid @gamestate) :lobby (:room-code @gamestate)}))
+                             (send-message :reconnect {:uuid (:uuid @gamestate) :room-code (:room-code @gamestate)}))
                            (render-page landing)))
 
 ;;;;;;;;;;;;;;;;;;;; PAGES ;;;;;;;;;;;;;;;;;;;;
@@ -74,7 +74,7 @@
             :on-change #(swap! gamestate assoc :room-code (-> % .-target .-value))
             :value (:room-code @gamestate)}]
    [:button {:on-click #(do (send-message :join-room (select-keys @gamestate [:room-code :name])))} "Join Game"]
-   [:button {:on-click #(do (send-message :make-lobby))} "Make lobby"]])
+   [:button {:on-click #(do (send-message :make-room))} "Make room"]])
 
 (defn other-players
   []

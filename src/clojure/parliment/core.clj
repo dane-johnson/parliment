@@ -6,32 +6,32 @@
             [compojure.handler :refer [site]])
   (:gen-class))
 
-;;;;;;;;;;;;;;;;;;;; LOBBY ;;;;;;;;;;;;;;;;;;;;
-(defonce lobbies (atom {}))
+;;;;;;;;;;;;;;;;;;;; ROOM ;;;;;;;;;;;;;;;;;;;;
+(defonce rooms (atom {}))
 
 (def ^:dynamic *reconnection-allowed* true)
 
 (defn generate-code
   []
   (let [code (atom nil)]
-    (while (or (nil? @code) (contains? @lobbies @code))
+    (while (or (nil? @code) (contains? @rooms @code))
       (reset! code
               (apply str
                      (repeatedly 4 #(char (+ (int \A) (rand-int 26)))))))
     @code))
 
-(defn make-lobby
+(defn make-room
   []
   (let [code (generate-code)]
-    (swap! lobbies assoc code
+    (swap! rooms assoc code
            {:players {}
             :mode :waiting
             :gamestate {}})
     code))
 
-(defn join-lobby
-  [lobby uuid channel name]
-  (swap! lobbies update-in [lobby :players] assoc uuid {:channel channel :name name}))
+(defn join-room
+  [room-code uuid channel name]
+  (swap! rooms update-in [room-code :players] assoc uuid {:channel channel :name name}))
 
 ;;;;;;;;;;;;;;;;;;;; WEBSOCKETS ;;;;;;;;;;;;;;;;;;;;
 
@@ -39,16 +39,20 @@
   ([channel msg] (send-message channel msg {}))
   ([channel msg data] (send! channel (prn-str (assoc data :server-message msg)))))
 
-(defn send-message-lobby
-  ([lobby msg] (send-message-lobby lobby msg {}))
-  ([lobby msg data] (doseq [channel (map #(:channel %) (vals (get-in @lobbies [lobby :players])))]
+(defn send-message-room
+  ([room-code msg] (send-message-room room-code msg {}))
+  ([room-code msg data] (doseq [channel (map #(:channel %) (vals (get-in @rooms [room-code :players])))]
                       (send-message channel msg data))))
 (defn update-roster
-  [lobby]
-  (send-message-lobby lobby :update-roster
-                      {:roster (-> @lobbies (get-in [lobby :players])
+  [room-code]
+  (send-message-room room-code :update-roster
+                      {:roster (-> @rooms (get-in [room-code :players])
                                    (->> (map (fn [[uuid {name :name}]]
                                                {:uuid uuid :name name}))))}))
+
+(defn update-gamestate
+  [room-code]
+  (send-message-room))
 
 (defn ws-handler
   [request]
@@ -59,21 +63,21 @@
                           (let [data (clojure.edn/read-string raw)
                                 msg (:client-message data)]
                             (case msg
-                              :make-lobby (let [lobby (make-lobby)]
-                                            (send-message channel :lobby-created {:room-code lobby}))
+                              :make-room (let [room-code (make-room)]
+                                            (send-message channel :room-created {:room-code room-code}))
                               :join-room (let [uuid (str (java.util.UUID/randomUUID))]
                                            (send-message channel :uuid {:uuid uuid})
-                                           (join-lobby (:room-code data) uuid channel (:name data))
+                                           (join-room (:room-code data) uuid channel (:name data))
                                            (update-roster (:room-code data)))
                               :reconnect (do
                                            (if (and
                                                 *reconnection-allowed*
-                                                (contains? @lobbies (:lobby data))
-                                                (contains? (get-in @lobbies [(:lobby data) :players]) (:uuid data)))
+                                                (contains? @rooms (:room-code data))
+                                                (contains? (get-in @rooms [(:room-code data) :players]) (:uuid data)))
                                              (do
-                                               (swap! lobbies assoc-in [(:lobby data) :players (:uuid data) :channel] channel)
+                                               (swap! rooms assoc-in [(:room-code data) :players (:uuid data) :channel] channel)
                                                (send-message channel :reconnected)
-                                               (update-roster (:lobby data)))
+                                               (update-roster (:room-code data)))
                                              (send-message channel :remove-cookie)))))))))
 
 ;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
