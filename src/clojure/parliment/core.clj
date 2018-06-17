@@ -69,23 +69,34 @@
                                 msg (:client-message data)
                                 room-code (get @channels channel)]
                             (case msg
-                              :make-room (let [room-code (make-room)]
-                                            (send-message channel :room-created {:room-code room-code}))
-                              :join-room (let [uuid (str (java.util.UUID/randomUUID))]
-                                           (send-message channel :uuid {:uuid uuid})
-                                           (join-room (:room-code data) uuid channel (:name data))
-                                           (update-roster (:room-code data)))
-                              :reconnect (do
-                                           
-                                           (if (and
-                                                @reconnections-allowed
-                                                (contains? @rooms (:room-code data))
-                                                (contains? (get-in @rooms [(:room-code data) :players]) (:uuid data)))
-                                             (do
-                                               (swap! rooms assoc-in [(:room-code data) :players (:uuid data) :channel] channel)
-                                               (send-message channel :reconnected)
-                                               (update-roster (:room-code data)))
-                                             (send-message channel :remove-cookie)))))))))
+                              :make-room
+                              (let [room-code (make-room)]
+                                (send-message channel :room-created {:room-code room-code}))
+                              
+                              :join-room
+                              (let [uuid (str (java.util.UUID/randomUUID))]
+                                (send-message channel :uuid {:uuid uuid})
+                                (join-room (:room-code data) uuid channel (:name data))
+                                (update-roster (:room-code data)))
+                              
+                              :reconnect
+                              (do
+                                (if (and
+                                     @reconnections-allowed
+                                     (contains? @rooms (:room-code data))
+                                     (contains? (get-in @rooms [(:room-code data) :players]) (:uuid data)))
+                                  (do
+                                    (swap! rooms assoc-in [(:room-code data) :players (:uuid data) :channel] channel)
+                                    (send-message channel :reconnected)
+                                    (update-roster (:room-code data)))
+                                  (send-message channel :remove-cookie)))
+                              
+                              :start-game
+                              (do
+                                (if (contains? @rooms room-code)
+                                  (do
+                                    (swap! rooms assoc-in [room-code :mode] :in-game)
+                                    (update-mode room-code))))))))))
 
 ;;;;;;;;;;;;;;;;;;;; ROUTING ;;;;;;;;;;;;;;;;;;;;
 

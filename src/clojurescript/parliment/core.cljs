@@ -26,7 +26,7 @@
     (set! (.-cookie js/document) "")
     (reset! gamestate {})))
 
-(declare landing lobby)
+(declare landing lobby in-game)
 
 (defn render-page
   [page]
@@ -36,18 +36,30 @@
 (defn logic-fn
   [msg data]
   (case msg
-    :reconnected (render-page lobby)
-    :remove-cookie (do
-                     (reset-gamestate)
-                     (render-page landing))
-    :uuid (do
-            (swap! gamestate assoc :uuid (:uuid data))
-            (save-gamestate-to-cookie)
-            (render-page lobby))
-    :update-roster (do
-                     (swap! gamestate assoc :roster (:roster data)))
-    :room-created (do
-                     (swap! gamestate assoc :room-code (:room-code data)))))
+    :reconnected
+    (render-page lobby)
+    :remove-cookie
+    (do
+      (reset-gamestate)
+      (render-page landing))
+    :uuid
+    (do
+      (swap! gamestate assoc :uuid (:uuid data))
+      (save-gamestate-to-cookie)
+      (render-page lobby))
+    :update-roster
+    (do
+      (swap! gamestate assoc :roster (:roster data)))
+    :room-created
+    (do
+      (swap! gamestate assoc :room-code (:room-code data)))
+    :update-mode
+    (do
+      (if (not= (:mode @gamestate) (:mode data))
+        (do
+          (swap! gamestate assoc :mode (:mode data))
+          ;; For now
+          (render-page in-game))))))
 
 (set! (.-onmessage socket) #(let [data (read-string (.-data %))]
                               (println data)
@@ -79,9 +91,15 @@
 (defn other-players
   []
   [:div [:p "Other players:"]
-   [:ul (map #(if (not= (:uuid %) (:uuid @gamestate))
-                [:li (:name %)]) (:roster @gamestate))]])
+   [:ul (let [state @gamestate]
+          (map #(if (not= (:uuid %) (:uuid state))
+                  [:li ^{:key (:uuid %)} (:name %)]) (:roster state)))]])
 
 (defn lobby
   []
-  [:div "Welcome to the game " (:name @gamestate) "! The game will begin soon!" (other-players)])
+  [:div "Welcome to the game " (:name @gamestate) "! The game will begin soon!" (other-players)
+   [:button {:on-click #(do (send-message :start-game))} "Start Game"]])
+
+(defn in-game
+  []
+  [:div "Game goes here."])
